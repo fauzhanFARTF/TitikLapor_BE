@@ -1,0 +1,43 @@
+# Stack pengembangan lokal: PostGIS + Redis + API.
+#   docker compose up -d
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: titiklapor
+      POSTGRES_USER: titiklapor
+      POSTGRES_PASSWORD: titiklapor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U titiklapor"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    environment:
+      DJANGO_ENV: development
+      DB_HOST: db
+      DB_NAME: titiklapor
+      DB_USER: titiklapor
+      DB_PASSWORD: titiklapor
+      REDIS_URL: redis://redis:6379/0
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/home/app
+
+volumes:
+  pgdata:
