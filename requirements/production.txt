@@ -1,0 +1,14 @@
+# Dependency tambahan untuk production (HF Spaces / VPS).
+#   pip install -r requirements/production.txt
+
+-r base.txt
+
+# WSGI server
+gunicorn==23.0.0
+
+# Static files
+whitenoise==6.9.0
+
+# Object storage (Supabase Storage via S3-compatible API)
+django-storages==1.14.4
+boto3==1.36.26

@@ -1,0 +1,31 @@
+# Dependency inti yang dipakai di SEMUA environment (dev + prod).
+
+# Core Django
+Django==6.0.3
+asgiref==3.11.1
+
+# Database driver (Postgres / Supabase / GeoDjango)
+psycopg2-binary==2.9.11
+
+# DRF
+djangorestframework==3.16.1
+djangorestframework-gis==1.2.0
+djangorestframework-simplejwt==5.5.1
+
+# Utilities
+django-cors-headers==4.9.0
+django-environ==0.13.0
+django-filter==25.2
+pillow==12.2.0
+PyJWT==2.12.1
+
+# Cache (Redis di prod, LocMem di dev)
+django-redis==5.4.0
+redis==5.2.1
+
+# HTTP client untuk adapter routing eksternal
+requests==2.32.3
+polyline==2.0.2
+
+# Rate limiting endpoint sensitif
+django-ratelimit==4.1.0

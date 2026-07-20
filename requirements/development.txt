@@ -1,0 +1,14 @@
+# Dependency tambahan untuk development.
+#   pip install -r requirements/development.txt
+
+-r base.txt
+
+# Testing
+pytest==8.3.5
+pytest-django==4.9.0
+pytest-cov==6.1.0
+factory-boy==3.3.3
+
+# Linting & formatting
+black==25.1.0
+ruff==0.11.6
