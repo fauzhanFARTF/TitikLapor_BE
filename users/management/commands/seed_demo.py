@@ -15,6 +15,17 @@ INSTANSI_DEMO = [
     ("DISKOMINFO", "Dinas Komunikasi dan Informatika", "Infrastruktur TIK publik"),
 ]
 
+# (nama, slug, ikon Font Awesome, warna penanda peta, kode instansi, SLA hari)
+KATEGORI_DEMO = [
+    ("Jalan Rusak", "jalan-rusak", "fa-road-circle-exclamation", "#dc2626", "DPUPR", 14),
+    ("Drainase Tersumbat", "drainase", "fa-water", "#0891b2", "DPUPR", 7),
+    ("Penerangan Jalan Mati", "penerangan", "fa-lightbulb", "#f59e0b", "DPUPR", 5),
+    ("Sampah Menumpuk", "sampah", "fa-trash", "#16a34a", "DLH", 3),
+    ("Pencemaran Lingkungan", "pencemaran", "fa-smog", "#7c3aed", "DLH", 10),
+    ("Rambu & Marka Rusak", "rambu", "fa-traffic-light", "#0ea5e9", "DISHUB", 7),
+    ("Parkir Liar", "parkir-liar", "fa-square-parking", "#ea580c", "DISHUB", 3),
+]
+
 
 class Command(BaseCommand):
     help = "Membuat instansi contoh serta akun admin, petugas, dan warga demo."
@@ -47,6 +58,28 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS(f"Akun {email} dibuat."))
 
+        self._seed_kategori()
+
         self.stdout.write(
             self.style.WARNING("Kata sandi seluruh akun demo: TitikLapor123!")
         )
+
+    def _seed_kategori(self) -> None:
+        # Diimpor di dalam method agar command tetap bisa dipakai walau app
+        # reports dinonaktifkan pada instalasi minimal.
+        from reports.models import Kategori
+
+        for nama, slug, ikon, warna, kode_instansi, sla in KATEGORI_DEMO:
+            Kategori.objects.get_or_create(
+                slug=slug,
+                defaults={
+                    "nama": nama,
+                    "ikon": ikon,
+                    "warna": warna,
+                    "sla_hari": sla,
+                    "instansi_default": Instansi.objects.filter(
+                        kode=kode_instansi
+                    ).first(),
+                },
+            )
+        self.stdout.write(self.style.SUCCESS(f"{len(KATEGORI_DEMO)} kategori siap."))
