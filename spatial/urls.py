@@ -11,6 +11,8 @@ urlpatterns = [
     path("heatmap/", views.heatmap, name="spatial-heatmap"),
     path("laporan-sekitar/", views.laporan_sekitar, name="spatial-laporan-sekitar"),
     path("fasilitas/", views.fasilitas_geojson, name="spatial-fasilitas"),
-    path("fasilitas/terdekat/", views.fasilitas_terdekat, name="spatial-fasilitas-dekat"),
+    path(
+        "fasilitas/terdekat/", views.fasilitas_terdekat, name="spatial-fasilitas-dekat"
+    ),
     path("rute/", views.rute, name="spatial-rute"),
 ]

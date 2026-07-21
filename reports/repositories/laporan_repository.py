@@ -32,9 +32,7 @@ class LaporanRepository:
 
     @staticmethod
     def get_by_tiket(nomor_tiket: str) -> Laporan | None:
-        return (
-            LaporanRepository.base_queryset().filter(nomor_tiket=nomor_tiket).first()
-        )
+        return LaporanRepository.base_queryset().filter(nomor_tiket=nomor_tiket).first()
 
     @staticmethod
     def create(**fields) -> Laporan:
@@ -61,7 +59,11 @@ class LaporanRepository:
 
     @staticmethod
     def dalam_bbox(
-        qs: QuerySet[Laporan], min_lon: float, min_lat: float, max_lon: float, max_lat: float
+        qs: QuerySet[Laporan],
+        min_lon: float,
+        min_lat: float,
+        max_lon: float,
+        max_lat: float,
     ) -> QuerySet[Laporan]:
         """Filter berdasarkan viewport peta (bounding box)."""
 

@@ -13,13 +13,26 @@ class KategoriAdmin(admin.ModelAdmin):
 class RiwayatInline(admin.TabularInline):
     model = RiwayatStatus
     extra = 0
-    readonly_fields = ("status_lama", "status_baru", "catatan", "nama_oleh", "created_at")
+    readonly_fields = (
+        "status_lama",
+        "status_baru",
+        "catatan",
+        "nama_oleh",
+        "created_at",
+    )
     can_delete = False
 
 
 @admin.register(Laporan)
 class LaporanAdmin(admin.GISModelAdmin):
-    list_display = ("nomor_tiket", "judul", "kategori", "status", "instansi", "created_at")
+    list_display = (
+        "nomor_tiket",
+        "judul",
+        "kategori",
+        "status",
+        "instansi",
+        "created_at",
+    )
     list_filter = ("status", "prioritas", "kategori", "instansi")
     search_fields = ("nomor_tiket", "judul", "alamat")
     readonly_fields = ("nomor_tiket", "created_at", "updated_at")
