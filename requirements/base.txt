@@ -17,7 +17,7 @@ django-cors-headers==4.9.0
 django-environ==0.13.0
 django-filter==25.2
 pillow==12.3.0
-PyJWT==2.12.1
+PyJWT==2.13.0
 
 # Cache (Redis di prod, LocMem di dev)
 django-redis==5.4.0
