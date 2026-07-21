@@ -1,5 +1,7 @@
 # Titik Lapor — Backend
 
+[![CI](https://github.com/fauzhanFARTF/TitikLapor_BE/actions/workflows/ci.yml/badge.svg)](https://github.com/fauzhanFARTF/TitikLapor_BE/actions/workflows/ci.yml)
+
 REST API untuk platform pelaporan masalah publik berbasis peta. Dibangun dengan
 **Django 6 + DRF + GeoDjango/PostGIS**, memakai arsitektur berlapis
 (model → repository → service → API) sehingga aturan bisnis dapat diuji tanpa
@@ -22,6 +24,7 @@ menyentuh HTTP.
 - [Fitur Spasial](#fitur-spasial)
 - [Header Keamanan](#header-keamanan)
 - [Pengujian](#pengujian)
+- [Integrasi Berkelanjutan](#integrasi-berkelanjutan)
 - [Deployment](#deployment)
 - [Alur Kerja Git](#alur-kerja-git)
 
@@ -381,6 +384,23 @@ Cakupan saat ini: **31 pengujian**.
 | `unit/test_nomor_tiket.py` | Format tiket & ketidak-berurutannya |
 | `integration/test_laporan_api.py` | Alur warga→petugas, isolasi data antar peran |
 | `integration/test_auth_api.py` | Registrasi tidak bisa menaikkan peran sendiri |
+
+---
+
+## Integrasi Berkelanjutan
+
+`.github/workflows/ci.yml` berjalan pada setiap push ke `main`/`develop` dan
+setiap pull request:
+
+| Job | Isi |
+|---|---|
+| **Lint & Format** | `ruff check` dan `black --check`. Versi keduanya dibaca langsung dari `requirements/development.txt`, supaya CI dan mesin lokal memakai formatter yang sama persis |
+| **Pytest** | Menjalankan seluruh pengujian di atas layanan PostGIS 17-3.5, lengkap dengan `manage.py check` dan pemeriksaan migrasi tertinggal. Laporan coverage diunggah sebagai artifact |
+| **Build image** | Membangun `Dockerfile` (tanpa push) agar kesalahan pada image produksi ketahuan sebelum deploy |
+
+Pemeriksaan migrasi (`makemigrations --check --dry-run`) sengaja disertakan:
+perubahan model yang lupa dibuatkan migrasinya akan lolos pengujian biasa,
+tetapi menggagalkan `migrate` saat container produksi dinyalakan.
 
 ---
 
