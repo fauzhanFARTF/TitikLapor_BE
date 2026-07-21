@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_gis",
+    # Menyimpan daftar refresh token yang sudah dicabut saat logout.
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "corsheaders",
     # Internal apps
@@ -120,7 +122,9 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": False,
+    # Token lama dicabut setiap kali dirotasi. Tanpa ini, refresh token yang
+    # sudah ditukar tetap dapat dipakai ulang oleh siapa pun yang menyalinnya.
+    "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 }
 

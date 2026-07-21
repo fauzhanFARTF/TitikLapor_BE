@@ -9,6 +9,7 @@ from users.api.views import (
     UserViewSet,
     change_password_view,
     login_view,
+    logout_view,
     profile_view,
     register_view,
 )
@@ -19,6 +20,7 @@ router.register("pengguna", UserViewSet, basename="pengguna")
 
 urlpatterns = [
     path("login/", login_view, name="auth-login"),
+    path("logout/", logout_view, name="auth-logout"),
     path("register/", register_view, name="auth-register"),
     path("refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("profil/", profile_view, name="auth-profile"),

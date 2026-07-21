@@ -1,12 +1,13 @@
 """Endpoint autentikasi, profil, manajemen pengguna & instansi."""
 
 from django.db.models import Count
+from django_ratelimit.decorators import ratelimit
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenRefreshView  # noqa: F401 (re-export)
 
-from core.exceptions import DomainError
+from core.exceptions import DomainError, TooManyRequests
 from core.mixins import EnvelopeResponseMixin
 from core.utils.responses import created, success
 from users.api.serializers import (
@@ -14,6 +15,7 @@ from users.api.serializers import (
     CreateInternalUserSerializer,
     InstansiSerializer,
     LoginSerializer,
+    LogoutSerializer,
     RegisterWargaSerializer,
     UpdateProfileSerializer,
     UserSerializer,
@@ -23,10 +25,31 @@ from users.permissions import IsAdmin
 from users.services import auth_service
 
 
+def _kunci_email(group, request) -> str:
+    """Kunci rate limit berbasis email yang dikirim, bukan alamat IP.
+
+    Pembatasan per-IP saja mudah dilewati lewat kumpulan proxy, dan sebaliknya
+    dapat mengunci banyak pengguna sah yang berbagi satu IP publik (kantor,
+    warnet, NAT seluler). Dua-duanya dipasang agar saling menutup kelemahan.
+    """
+
+    return (request.data.get("email") or "").lower().strip()
+
+
+def _pastikan_tidak_dibatasi(request) -> None:
+    if getattr(request, "limited", False):
+        raise TooManyRequests()
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
+# Dua lapis: per alamat IP dan per akun yang disasar.
+@ratelimit(key="ip", rate="20/m", method="POST", block=False)
+@ratelimit(key=_kunci_email, rate="5/m", method="POST", block=False)
 def login_view(request):
     """Login untuk semua peran (warga, petugas, admin)."""
+
+    _pastikan_tidak_dibatasi(request)
 
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -41,9 +64,28 @@ def login_view(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    """Keluar dengan mencabut refresh token.
+
+    Tanpa ini, menghapus token di sisi klien tidak membuatnya tidak berlaku —
+    refresh token yang tercuri tetap sah sampai masa berlakunya habis.
+    """
+
+    serializer = LogoutSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    auth_service.logout(serializer.validated_data["refresh"])
+    return success(message="Anda telah keluar.")
+
+
+@api_view(["POST"])
 @permission_classes([AllowAny])
+@ratelimit(key="ip", rate="5/h", method="POST", block=False)
 def register_view(request):
     """Registrasi mandiri — peran selalu dipaksa WARGA di service."""
+
+    _pastikan_tidak_dibatasi(request)
 
     serializer = RegisterWargaSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -77,7 +119,11 @@ def profile_view(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+# Menebak kata sandi lama lewat endpoint ini sama saja dengan brute-force.
+@ratelimit(key="user", rate="5/m", method="POST", block=False)
 def change_password_view(request):
+    _pastikan_tidak_dibatasi(request)
+
     serializer = ChangePasswordSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 

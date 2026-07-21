@@ -17,6 +17,20 @@ class InvalidStateTransition(DomainError):
     default_code = "invalid_state_transition"
 
 
+class TooManyRequests(APIException):
+    """Batas laju terlampaui.
+
+    django-ratelimit sendiri melempar `Ratelimited` yang berujung pada 403 —
+    keliru secara semantik, karena masalahnya bukan izin melainkan frekuensi.
+    View memakai `block=False` lalu melempar exception ini agar klien menerima
+    429 beserta amplop error yang sama dengan endpoint lain.
+    """
+
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    default_detail = "Terlalu banyak percobaan. Coba lagi beberapa saat lagi."
+    default_code = "too_many_requests"
+
+
 class ResourceNotFound(APIException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = "Data tidak ditemukan."
