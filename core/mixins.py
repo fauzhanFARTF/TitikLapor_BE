@@ -2,8 +2,6 @@
 
 from rest_framework.response import Response
 
-from core.utils import responses
-
 
 class EnvelopeResponseMixin:
     """Menyamakan bentuk response ViewSet dengan helper core.utils.responses.

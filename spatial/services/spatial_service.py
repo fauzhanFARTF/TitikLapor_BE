@@ -70,9 +70,7 @@ def agregasi_per_wilayah(tingkat: str = Wilayah.Tingkat.KECAMATAN) -> list[dict]
                 ),
                 # Kepadatan per km² membuat wilayah besar & kecil sebanding.
                 "kepadatan_per_km2": (
-                    round(total / wilayah.luas_km2, 2)
-                    if wilayah.luas_km2
-                    else None
+                    round(total / wilayah.luas_km2, 2) if wilayah.luas_km2 else None
                 ),
                 "centroid": [wilayah.centroid.x, wilayah.centroid.y],
             }
@@ -145,16 +143,16 @@ def laporan_sekitar(
 
     return [
         {
-            "id": str(l.id),
-            "nomor_tiket": l.nomor_tiket,
-            "judul": l.judul,
-            "kategori": l.kategori.nama,
-            "status": l.status,
-            "jarak_meter": round(l.jarak.m, 1),
-            "latitude": l.lokasi.y,
-            "longitude": l.lokasi.x,
+            "id": str(laporan.id),
+            "nomor_tiket": laporan.nomor_tiket,
+            "judul": laporan.judul,
+            "kategori": laporan.kategori.nama,
+            "status": laporan.status,
+            "jarak_meter": round(laporan.jarak.m, 1),
+            "latitude": laporan.lokasi.y,
+            "longitude": laporan.lokasi.x,
         }
-        for l in qs
+        for laporan in qs
     ]
 
 

@@ -1,7 +1,7 @@
 """Endpoint autentikasi, profil, manajemen pengguna & instansi."""
 
 from django.db.models import Count
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenRefreshView  # noqa: F401 (re-export)
