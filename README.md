@@ -491,9 +491,45 @@ main      ← rilis produksi (selalu dapat di-deploy)
 ```
 
 ```bash
-git switch develop && git switch -c feature/be-notifikasi
+# 1. Cabang fitur dari develop
+git switch develop && git pull
+git switch -c feature/be-notifikasi
 # … kerjakan, commit bertahap …
+
+# 2. Gabungkan ke develop (masih boleh lokal — develop tidak diproteksi)
 git switch develop && git merge --no-ff feature/be-notifikasi
+git push origin develop
+
+# 3. Rilis ke main WAJIB lewat pull request
+gh pr create --base main --head develop --fill
+gh pr checks --watch          # tunggu CI hijau
+gh pr merge --merge           # baru bisa di-merge setelah semua cek lulus
+
+# 4. Samakan develop dengan main
+git switch develop && git merge --ff-only main && git push origin develop
+```
+
+### Proteksi Branch `main`
+
+`main` diproteksi, jadi `git push origin main` akan **ditolak**. Aturannya:
+
+| Aturan | Nilai |
+|---|---|
+| Cek CI wajib lulus | `Lint & Format`, `Pytest (Python 3.12)`, `Build image` |
+| Branch harus mutakhir sebelum merge | Ya |
+| Force-push & hapus branch | Dilarang untuk semua |
+| Berlaku untuk admin | **Tidak** — pemilik repo tetap bisa menembus bila mendesak |
+
+Review wajib **tidak** diaktifkan dengan sengaja: GitHub melarang menyetujui
+pull request sendiri, sehingga pada repositori satu orang aturan itu akan
+mengunci merge selamanya.
+
+Jalan darurat (pakai seperlunya, dan sebutkan alasannya di pesan commit):
+
+```bash
+gh api -X DELETE repos/<user>/<repo>/branches/main/protection   # matikan
+# … perbaiki …
+gh api -X PUT  repos/<user>/<repo>/branches/main/protection --input proteksi.json
 ```
 
 ### Konvensi Pesan Commit
