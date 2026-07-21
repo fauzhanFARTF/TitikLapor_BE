@@ -10,5 +10,5 @@ pytest-cov==6.1.0
 factory-boy==3.3.3
 
 # Linting & formatting
-black==25.1.0
+black==26.3.1
 ruff==0.11.6
