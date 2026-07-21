@@ -54,6 +54,11 @@ if _redis_url:
         }
     }
 else:
+    # PERINGATAN: LocMemCache bersifat per-proses. Pembatasan laju login
+    # menyimpan penghitungnya di cache, sehingga dengan 2 worker gunicorn
+    # batas efektifnya menjadi dua kali lipat dan penyerang cukup mencoba
+    # berulang sampai mendarat di worker yang penghitungnya masih rendah.
+    # Isi REDIS_URL bila layanan diekspos ke publik.
     CACHES = {
         "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
     }

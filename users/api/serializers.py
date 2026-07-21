@@ -54,6 +54,10 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
 
 
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True)
+
+
 class RegisterWargaSerializer(serializers.Serializer):
     email = serializers.EmailField()
     nama_lengkap = serializers.CharField(max_length=150)
