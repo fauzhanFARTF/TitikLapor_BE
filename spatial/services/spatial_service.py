@@ -9,7 +9,7 @@ from django.contrib.gis.db.models.functions import Centroid, Distance
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 
 from core.exceptions import DomainError
 from reports.models import Laporan
@@ -19,6 +19,13 @@ from spatial.models import Fasilitas, Wilayah
 logger = logging.getLogger("spatial")
 
 CACHE_TTL_DETIK = 300
+
+# Peringkat kekhususan wilayah — makin besar makin spesifik.
+_PERINGKAT_TINGKAT = (
+    When(tingkat=Wilayah.Tingkat.KELURAHAN, then=Value(3)),
+    When(tingkat=Wilayah.Tingkat.KECAMATAN, then=Value(2)),
+    When(tingkat=Wilayah.Tingkat.KOTA, then=Value(1)),
+)
 
 
 def _cache_key(prefix: str, *parts) -> str:
@@ -40,13 +47,11 @@ def agregasi_per_wilayah(tingkat: str = Wilayah.Tingkat.KECAMATAN) -> list[dict]
     if (cached := cache.get(kunci)) is not None:
         return cached
 
-    wilayah_qs = (
-        Wilayah.objects.filter(tingkat=tingkat)
-        .annotate(
-            # `geom__contains` pada relasi terbalik = ST_Contains di PostGIS.
-            total=Count("id", distinct=True, filter=Q(pk__isnull=False)),
-        )
-        .annotate(centroid=Centroid("geom"))
+    # Satu query agregasi per wilayah. Pola N+1 ini disengaja: jumlah wilayah
+    # administratif kecil (puluhan), hasilnya di-cache, dan versi subquery-nya
+    # jauh lebih sulit dibaca tanpa keuntungan nyata pada skala ini.
+    wilayah_qs = Wilayah.objects.filter(tingkat=tingkat).annotate(
+        centroid=Centroid("geom")
     )
 
     hasil = []
@@ -85,9 +90,16 @@ def wilayah_dari_titik(latitude: float, longitude: float) -> dict | None:
     """Reverse-lookup wilayah administratif dari satu koordinat."""
 
     titik = Point(longitude, latitude, srid=4326)
+
+    # Satu titik berada di dalam beberapa wilayah sekaligus (kelurahan ada di
+    # dalam kecamatan, kecamatan di dalam kota), jadi yang paling spesifik yang
+    # harus diambil. Urutan alfabetis TIDAK bisa dipakai: KECAMATAN < KELURAHAN
+    # < KOTA, sehingga `order_by("-tingkat")` justru mengembalikan KOTA — yang
+    # paling umum. Peringkatnya karena itu ditentukan secara eksplisit.
     wilayah = (
         Wilayah.objects.filter(geom__contains=titik)
-        .order_by("-tingkat")  # KELURAHAN lebih spesifik daripada KECAMATAN
+        .annotate(kekhususan=Case(*_PERINGKAT_TINGKAT, output_field=IntegerField()))
+        .order_by("-kekhususan")
         .first()
     )
     if wilayah is None:

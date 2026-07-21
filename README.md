@@ -18,6 +18,7 @@ menyentuh HTTP.
 - [Menjalankan Secara Lokal](#menjalankan-secara-lokal)
 - [Variabel Lingkungan](#variabel-lingkungan)
 - [Model Domain](#model-domain)
+- [Data Batas Wilayah](#data-batas-wilayah)
 - [Peran & Otorisasi](#peran--otorisasi)
 - [Alur Status Laporan](#alur-status-laporan)
 - [Daftar Endpoint](#daftar-endpoint)
@@ -124,6 +125,7 @@ psql -d titiklapor -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 
 python manage.py migrate
 python manage.py seed_demo        # instansi, kategori, & 3 akun contoh
+python manage.py import_wilayah --induk-nama "Kabupaten Tangerang"
 python manage.py runserver
 ```
 
@@ -200,6 +202,47 @@ Catatan desain:
 - **Snapshot nama pelapor.** Relasi ke `User` memakai `SET_NULL`, sementara
   `nama_pelapor` menyimpan salinan nama, sehingga riwayat tetap terbaca
   walaupun akunnya dihapus.
+
+---
+
+### Data Batas Wilayah
+
+Analisis choropleth dan pengisian kelurahan/kecamatan otomatis membutuhkan
+tabel `Wilayah` terisi. Repo menyertakan batas **29 kecamatan Kabupaten
+Tangerang** (kode BPS `36.03.xx`) di `spatial/data/`.
+
+```bash
+# Impor bawaan + membentuk induk tingkat kabupaten dari gabungan kecamatan
+python manage.py import_wilayah --induk-nama "Kabupaten Tangerang"
+
+# Periksa dulu tanpa menulis apa pun
+python manage.py import_wilayah --dry-run
+
+# Sumber lain dengan nama kolom berbeda
+python manage.py import_wilayah \
+    --file /path/batas_kelurahan.geojson \
+    --tingkat KELURAHAN \
+    --nama-field NAMA_KEL --kode-field KODE_KEL
+```
+
+Perilaku command:
+
+- **Idempoten** — dijalankan ulang memperbarui geometri, tidak menggandakan baris.
+- **Menyaring data cacat** — fitur tanpa nama/kode dilewati dan dilaporkan; kode
+  ganda ditolak alih-alih diam-diam menimpa baris sebelumnya.
+- **Memperbaiki geometri rusak** lewat `buffer(0)`, yang lazim dibutuhkan pada
+  data batas hasil digitasi (satu poligon di berkas bawaan memang perlu ini).
+- **Membungkus `Polygon` menjadi `MultiPolygon`** agar berkas dari sumber lain
+  tetap dapat dipakai.
+- **Menghitung `luas_km2`** lewat `ST_Area(geom::geography)` — menghitung luas
+  langsung dari koordinat derajat menghasilkan angka tanpa arti. Nilai ini yang
+  dipakai kolom kepadatan per km² pada halaman analitik.
+- **`--induk-nama`** membentuk wilayah tingkat KOTA dari gabungan seluruh
+  poligon anak, karena berkas bawaan tidak memuat poligon kabupaten.
+
+> Titik laporan di luar cakupan data tidak akan mendapat pengisian wilayah
+> otomatis. Sesuaikan `VITE_MAP_CENTER_*` di frontend bila Anda mengimpor
+> wilayah lain.
 
 ---
 
@@ -406,7 +449,7 @@ pytest -m integration   # butuh PostGIS aktif
 pytest --cov=. --cov-report=term-missing
 ```
 
-Cakupan saat ini: **38 pengujian**.
+Cakupan saat ini: **51 pengujian**.
 
 | Berkas | Yang dijaga |
 |---|---|
@@ -417,6 +460,7 @@ Cakupan saat ini: **38 pengujian**.
 | `integration/test_laporan_api.py` | Alur warga→petugas, isolasi data antar peran |
 | `integration/test_auth_api.py` | Registrasi tidak bisa menaikkan peran sendiri |
 | `integration/test_auth_hardening.py` | Batas laju benar-benar menyala; token dicabut saat logout & rotasi |
+| `integration/test_import_wilayah.py` | Impor idempoten & menyaring data cacat; reverse-lookup mengembalikan tingkat paling spesifik |
 
 ---
 
