@@ -4,7 +4,7 @@
 -r base.txt
 
 # Testing
-pytest==8.3.5
+pytest==9.0.3
 pytest-django==4.9.0
 pytest-cov==6.1.0
 factory-boy==3.3.3
