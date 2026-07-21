@@ -7,7 +7,9 @@ class IsAdmin(BasePermission):
     message = "Hanya administrator yang boleh mengakses sumber daya ini."
 
     def has_permission(self, request, view) -> bool:
-        return bool(request.user and request.user.is_authenticated and request.user.is_admin)
+        return bool(
+            request.user and request.user.is_authenticated and request.user.is_admin
+        )
 
 
 class IsPetugas(BasePermission):
@@ -33,7 +35,9 @@ class IsAdminOrPetugas(BasePermission):
 
     def has_permission(self, request, view) -> bool:
         user = request.user
-        return bool(user and user.is_authenticated and (user.is_admin or user.is_petugas))
+        return bool(
+            user and user.is_authenticated and (user.is_admin or user.is_petugas)
+        )
 
 
 class IsOwnerOrStaffReadOnly(BasePermission):

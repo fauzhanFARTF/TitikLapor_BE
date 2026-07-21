@@ -60,7 +60,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
             qs = LaporanRepository.dalam_bbox(qs, min_lon, min_lat, max_lon, max_lat)
 
         # Filter radius: lat, lon, radius (meter)
-        lat, lon = self.request.query_params.get("lat"), self.request.query_params.get("lon")
+        lat, lon = self.request.query_params.get("lat"), self.request.query_params.get(
+            "lon"
+        )
         if lat and lon:
             radius = float(self.request.query_params.get("radius", 1000))
             qs = LaporanRepository.dalam_radius(
@@ -79,7 +81,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
         serializer = LaporanCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        laporan = laporan_service.buat_laporan(pelapor=request.user, **serializer.validated_data)
+        laporan = laporan_service.buat_laporan(
+            pelapor=request.user, **serializer.validated_data
+        )
         return created(
             LaporanDetailSerializer(laporan, context={"request": request}).data,
             message=f"Laporan terkirim dengan nomor tiket {laporan.nomor_tiket}.",
@@ -101,8 +105,12 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
 
     # ── Aksi ─────────────────────────────────────────────────────────────────
 
-    @action(detail=True, methods=["post"], url_path="status",
-            permission_classes=[IsAdminOrPetugas])
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="status",
+        permission_classes=[IsAdminOrPetugas],
+    )
     def ubah_status(self, request, pk=None):
         laporan = self.get_object()
         laporan_service.pastikan_boleh_ubah(laporan, request.user)
@@ -124,7 +132,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
             message="Status laporan diperbarui.",
         )
 
-    @action(detail=True, methods=["post"], url_path="alihkan", permission_classes=[IsAdmin])
+    @action(
+        detail=True, methods=["post"], url_path="alihkan", permission_classes=[IsAdmin]
+    )
     def alihkan(self, request, pk=None):
         serializer = AlihkanInstansiSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -139,7 +149,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="dukungan")
     def dukungan(self, request, pk=None):
-        hasil = laporan_service.toggle_dukungan(laporan=self.get_object(), warga=request.user)
+        hasil = laporan_service.toggle_dukungan(
+            laporan=self.get_object(), warga=request.user
+        )
         return success(hasil, message="Dukungan diperbarui.")
 
     @action(detail=True, methods=["post"], url_path="tanggapan")
@@ -153,7 +165,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
             isi=serializer.validated_data["isi"],
             is_internal=request.data.get("is_internal") in (True, "true", "1"),
         )
-        return created(TanggapanSerializer(tanggapan).data, message="Tanggapan terkirim.")
+        return created(
+            TanggapanSerializer(tanggapan).data, message="Tanggapan terkirim."
+        )
 
     @action(detail=False, methods=["get"], url_path="geojson")
     def geojson(self, request):
@@ -180,7 +194,9 @@ class LaporanViewSet(EnvelopeResponseMixin, viewsets.ModelViewSet):
             lon = float(request.query_params["lon"])
             kategori_id = request.query_params["kategori_id"]
         except (KeyError, ValueError) as exc:
-            raise DomainError("Parameter lat, lon, dan kategori_id wajib diisi.") from exc
+            raise DomainError(
+                "Parameter lat, lon, dan kategori_id wajib diisi."
+            ) from exc
 
         kandidat = laporan_service.cek_duplikat(lat, lon, kategori_id)
         return success(

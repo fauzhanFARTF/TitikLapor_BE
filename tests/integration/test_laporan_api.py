@@ -40,7 +40,9 @@ def test_warga_dapat_membuat_laporan(client_warga, kategori):
     assert response.data["data"]["instansi"] is not None
 
 
-def test_warga_hanya_melihat_laporannya_sendiri(client_warga, laporan, kategori, admin_user):
+def test_warga_hanya_melihat_laporannya_sendiri(
+    client_warga, laporan, kategori, admin_user
+):
     Laporan.objects.create(
         nomor_tiket="TL-20260101-BBBB",
         judul="Laporan orang lain",

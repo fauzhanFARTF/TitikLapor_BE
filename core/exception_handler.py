@@ -20,7 +20,9 @@ def custom_exception_handler(exc, context):
                 "success": False,
                 "message": "Data yang dikirim tidak valid.",
                 "code": "validation_error",
-                "errors": exc.message_dict if hasattr(exc, "message_dict") else exc.messages,
+                "errors": (
+                    exc.message_dict if hasattr(exc, "message_dict") else exc.messages
+                ),
             },
             status=status.HTTP_400_BAD_REQUEST,
         )

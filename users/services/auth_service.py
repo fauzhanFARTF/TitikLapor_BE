@@ -89,7 +89,10 @@ def create_internal_user(
     if role == User.Role.PETUGAS and not instansi_id:
         raise DomainError("Akun petugas wajib ditautkan ke satu instansi.")
 
-    if instansi_id and not Instansi.objects.filter(pk=instansi_id, is_active=True).exists():
+    if (
+        instansi_id
+        and not Instansi.objects.filter(pk=instansi_id, is_active=True).exists()
+    ):
         raise DomainError("Instansi tidak ditemukan atau sudah nonaktif.")
 
     if User.objects.filter(email=email.lower().strip()).exists():

@@ -1,7 +1,7 @@
 # Dependency inti yang dipakai di SEMUA environment (dev + prod).
 
 # Core Django
-Django==6.0.3
+Django==6.0.6
 asgiref==3.11.1
 
 # Database driver (Postgres / Supabase / GeoDjango)
@@ -17,14 +17,14 @@ django-cors-headers==4.9.0
 django-environ==0.13.0
 django-filter==25.2
 pillow==12.3.0
-PyJWT==2.12.1
+PyJWT==2.13.0
 
 # Cache (Redis di prod, LocMem di dev)
 django-redis==5.4.0
 redis==5.2.1
 
 # HTTP client untuk adapter routing eksternal
-requests==2.32.3
+requests==2.33.0
 polyline==2.0.2
 
 # Rate limiting endpoint sensitif

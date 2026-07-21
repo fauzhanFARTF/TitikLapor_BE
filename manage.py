@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Entry point CLI Django untuk Titik Lapor."""
+
 import os
 import sys
 

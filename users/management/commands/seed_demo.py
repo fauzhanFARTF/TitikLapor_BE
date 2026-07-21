@@ -1,6 +1,6 @@
 """Isi database dengan data contoh untuk demo & pengembangan lokal.
 
-    python manage.py seed_demo
+python manage.py seed_demo
 """
 
 from django.core.management.base import BaseCommand
@@ -17,7 +17,14 @@ INSTANSI_DEMO = [
 
 # (nama, slug, ikon Font Awesome, warna penanda peta, kode instansi, SLA hari)
 KATEGORI_DEMO = [
-    ("Jalan Rusak", "jalan-rusak", "fa-road-circle-exclamation", "#dc2626", "DPUPR", 14),
+    (
+        "Jalan Rusak",
+        "jalan-rusak",
+        "fa-road-circle-exclamation",
+        "#dc2626",
+        "DPUPR",
+        14,
+    ),
     ("Drainase Tersumbat", "drainase", "fa-water", "#0891b2", "DPUPR", 7),
     ("Penerangan Jalan Mati", "penerangan", "fa-lightbulb", "#f59e0b", "DPUPR", 5),
     ("Sampah Menumpuk", "sampah", "fa-trash", "#16a34a", "DLH", 3),

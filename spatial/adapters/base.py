@@ -25,8 +25,6 @@ class RoutingAdapter(ABC):
     nama: str = "base"
 
     @abstractmethod
-    def rute(
-        self, asal: tuple[float, float], tujuan: tuple[float, float]
-    ) -> HasilRute:
+    def rute(self, asal: tuple[float, float], tujuan: tuple[float, float]) -> HasilRute:
         """Hitung rute dari (lon, lat) asal ke (lon, lat) tujuan."""
         raise NotImplementedError

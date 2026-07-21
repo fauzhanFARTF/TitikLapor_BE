@@ -57,7 +57,9 @@ class LoginSerializer(serializers.Serializer):
 class RegisterWargaSerializer(serializers.Serializer):
     email = serializers.EmailField()
     nama_lengkap = serializers.CharField(max_length=150)
-    nomor_telepon = serializers.CharField(max_length=30, required=False, allow_blank=True)
+    nomor_telepon = serializers.CharField(
+        max_length=30, required=False, allow_blank=True
+    )
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_konfirmasi = serializers.CharField(write_only=True)
 
@@ -72,7 +74,9 @@ class RegisterWargaSerializer(serializers.Serializer):
 class CreateInternalUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
     nama_lengkap = serializers.CharField(max_length=150)
-    nomor_telepon = serializers.CharField(max_length=30, required=False, allow_blank=True)
+    nomor_telepon = serializers.CharField(
+        max_length=30, required=False, allow_blank=True
+    )
     role = serializers.ChoiceField(choices=[User.Role.PETUGAS, User.Role.ADMIN])
     instansi_id = serializers.UUIDField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True, validators=[validate_password])
@@ -86,4 +90,6 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
 class ChangePasswordSerializer(serializers.Serializer):
     password_lama = serializers.CharField(write_only=True)
-    password_baru = serializers.CharField(write_only=True, validators=[validate_password])
+    password_baru = serializers.CharField(
+        write_only=True, validators=[validate_password]
+    )

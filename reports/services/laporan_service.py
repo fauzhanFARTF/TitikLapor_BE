@@ -88,7 +88,9 @@ def buat_laporan(
     LaporanRepository.catat_riwayat(
         laporan, "", Laporan.Status.BARU, "Laporan dibuat.", pelapor
     )
-    logger.info("Laporan baru %s oleh %s", laporan.nomor_tiket, getattr(pelapor, "email", "-"))
+    logger.info(
+        "Laporan baru %s oleh %s", laporan.nomor_tiket, getattr(pelapor, "email", "-")
+    )
     return laporan
 
 
@@ -160,7 +162,9 @@ def ubah_status(
 
 
 @transaction.atomic
-def alihkan_instansi(*, laporan: Laporan, instansi_id, oleh: User, catatan: str = "") -> Laporan:
+def alihkan_instansi(
+    *, laporan: Laporan, instansi_id, oleh: User, catatan: str = ""
+) -> Laporan:
     """Disposisi laporan ke instansi lain (hak administrator)."""
 
     from users.models import Instansi

@@ -38,9 +38,9 @@ MIDDLEWARE = list(MIDDLEWARE)
 _security_idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
 MIDDLEWARE.insert(_security_idx + 1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
-STORAGES["staticfiles"]["BACKEND"] = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
+STORAGES["staticfiles"][
+    "BACKEND"
+] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ── Cache ─────────────────────────────────────────────────────────────────────
 
