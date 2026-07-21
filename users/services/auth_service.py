@@ -11,6 +11,7 @@ import logging
 
 from django.contrib.auth import authenticate
 from django.db import transaction
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.exceptions import DomainError
@@ -43,6 +44,22 @@ def login(email: str, password: str) -> tuple[User, dict[str, str]]:
 
     logger.info("Login berhasil: %s (%s)", user.email, user.role)
     return user, issue_tokens(user)
+
+
+def logout(refresh_token: str) -> None:
+    """Masukkan refresh token ke daftar cabut (blacklist).
+
+    Setelah ini token tersebut tidak dapat lagi ditukar dengan access token
+    baru, sehingga sesi benar-benar berakhir di sisi server — bukan sekadar
+    dihapus dari penyimpanan browser.
+    """
+
+    try:
+        RefreshToken(refresh_token).blacklist()
+    except TokenError as exc:
+        # Token kedaluwarsa atau sudah dicabut: hasil akhirnya sama saja bagi
+        # pengguna, jadi jangan digagalkan — cukup dicatat.
+        logger.info("Logout dengan token tidak berlaku: %s", exc)
 
 
 @transaction.atomic

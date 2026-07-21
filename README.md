@@ -23,6 +23,7 @@ menyentuh HTTP.
 - [Daftar Endpoint](#daftar-endpoint)
 - [Fitur Spasial](#fitur-spasial)
 - [Header Keamanan](#header-keamanan)
+- [Pembatasan Laju & Sesi](#pembatasan-laju--sesi)
 - [Pengujian](#pengujian)
 - [Integrasi Berkelanjutan](#integrasi-berkelanjutan)
 - [Deployment](#deployment)
@@ -265,6 +266,7 @@ Semua respons memakai amplop yang sama:
 | Metode | Path | Akses | Keterangan |
 |---|---|---|---|
 | POST | `login/` | publik | Mengembalikan profil + pasangan token JWT |
+| POST | `logout/` | login | Mencabut refresh token (blacklist) |
 | POST | `register/` | publik | Registrasi warga (peran dipaksa `WARGA`) |
 | POST | `refresh/` | publik | Menukar refresh token |
 | GET/PATCH | `profil/` | login | Baca / perbarui profil sendiri |
@@ -365,6 +367,36 @@ Di development CSP berjalan **report-only** supaya Vite HMR tidak terhalang.
 
 ---
 
+### Pembatasan Laju & Sesi
+
+| Endpoint | Batas | Kunci |
+|---|---|---|
+| `auth/login/` | 5/menit · 20/menit | Email yang disasar · alamat IP |
+| `auth/register/` | 5/jam | Alamat IP |
+| `auth/ubah-sandi/` | 5/menit | Pengguna |
+
+Login dibatasi dua lapis. Pembatasan per-IP saja mudah dilewati lewat kumpulan
+proxy, sekaligus berisiko mengunci banyak pengguna sah yang berbagi satu IP
+publik (kantor, NAT seluler); pembatasan per-email menutup celah pertama, dan
+batas IP yang longgar menutup yang kedua.
+
+Pelampauan batas dijawab **429** dengan amplop error yang sama seperti endpoint
+lain — bukan 403 seperti bawaan `django-ratelimit`, karena masalahnya frekuensi,
+bukan izin.
+
+> **Penting:** penghitung rate limit disimpan di cache. `LocMemCache` bersifat
+> per-proses, sehingga dengan beberapa worker gunicorn batas efektifnya berlipat
+> dan tidak dapat diandalkan. **Isi `REDIS_URL` bila layanan diekspos ke
+> publik.**
+
+Sesi memakai `ROTATE_REFRESH_TOKENS` + `BLACKLIST_AFTER_ROTATION`, sehingga
+refresh token yang sudah ditukar langsung dicabut. Endpoint `auth/logout/`
+mencabut token secara eksplisit — tanpa itu, menghapus token di sisi klien
+tidak membuatnya tidak berlaku, dan token yang tercuri tetap sah sampai masa
+berlakunya habis (7 hari).
+
+---
+
 ## Pengujian
 
 ```bash
@@ -374,7 +406,7 @@ pytest -m integration   # butuh PostGIS aktif
 pytest --cov=. --cov-report=term-missing
 ```
 
-Cakupan saat ini: **31 pengujian**.
+Cakupan saat ini: **38 pengujian**.
 
 | Berkas | Yang dijaga |
 |---|---|
@@ -384,6 +416,7 @@ Cakupan saat ini: **31 pengujian**.
 | `unit/test_nomor_tiket.py` | Format tiket & ketidak-berurutannya |
 | `integration/test_laporan_api.py` | Alur warga→petugas, isolasi data antar peran |
 | `integration/test_auth_api.py` | Registrasi tidak bisa menaikkan peran sendiri |
+| `integration/test_auth_hardening.py` | Batas laju benar-benar menyala; token dicabut saat logout & rotasi |
 
 ---
 
