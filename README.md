@@ -1,3 +1,14 @@
+---
+title: Titik Lapor API
+emoji: 📍
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # Titik Lapor — Backend
 
 [![CI](https://github.com/fauzhanFARTF/TitikLapor_BE/actions/workflows/ci.yml/badge.svg)](https://github.com/fauzhanFARTF/TitikLapor_BE/actions/workflows/ci.yml)
@@ -27,6 +38,7 @@ menyentuh HTTP.
 - [Pembatasan Laju & Sesi](#pembatasan-laju--sesi)
 - [Pengujian](#pengujian)
 - [Integrasi Berkelanjutan](#integrasi-berkelanjutan)
+- [Kesiapan Produksi](#kesiapan-produksi)
 - [Deployment](#deployment)
 - [Alur Kerja Git](#alur-kerja-git)
 
@@ -449,7 +461,7 @@ pytest -m integration   # butuh PostGIS aktif
 pytest --cov=. --cov-report=term-missing
 ```
 
-Cakupan saat ini: **51 pengujian**.
+Cakupan saat ini: **65 pengujian**.
 
 | Berkas | Yang dijaga |
 |---|---|
@@ -461,6 +473,7 @@ Cakupan saat ini: **51 pengujian**.
 | `integration/test_auth_api.py` | Registrasi tidak bisa menaikkan peran sendiri |
 | `integration/test_auth_hardening.py` | Batas laju benar-benar menyala; token dicabut saat logout & rotasi |
 | `integration/test_import_wilayah.py` | Impor idempoten & menyaring data cacat; reverse-lookup mengembalikan tingkat paling spesifik |
+| `integration/test_kesiapan.py` | Pemeriksa kesiapan menangkap konfigurasi berbahaya & akun demo |
 
 ---
 
@@ -478,6 +491,51 @@ setiap pull request:
 Pemeriksaan migrasi (`makemigrations --check --dry-run`) sengaja disertakan:
 perubahan model yang lupa dibuatkan migrasinya akan lolos pengujian biasa,
 tetapi menggagalkan `migrate` saat container produksi dinyalakan.
+
+---
+
+## Kesiapan Produksi
+
+Dua command membantu memastikan instalasi tidak dilepas ke publik dalam
+keadaan setengah jadi.
+
+```bash
+python manage.py cek_kesiapan          # laporan lengkap
+python manage.py cek_kesiapan --ketat  # peringatan pun dianggap gagal (CI)
+```
+
+Yang diperiksa: `DEBUG`, `SECRET_KEY` bawaan, `ALLOWED_HOSTS` kosong/wildcard,
+pengalihan HTTPS & HSTS, CSP masih report-only, origin `localhost` yang
+tertinggal di CORS, cache non-Redis (membuat rate limit tidak andal),
+penyimpanan media ephemeral, akun demo yang masih hidup, data wilayah kosong,
+dan kategori yang belum dipetakan ke instansi.
+
+Kode keluarnya 1 bila ada masalah, sehingga dapat dipasang sebagai gerbang
+rilis. Ini melengkapi `manage.py check --deploy` bawaan Django, yang hanya
+memeriksa setelan keamanan umum dan tidak tahu apa pun tentang isi database.
+
+```bash
+python manage.py amankan_akun_demo              # nonaktifkan (default)
+python manage.py amankan_akun_demo --acak-sandi # tetap aktif, sandi diacak
+python manage.py amankan_akun_demo --dry-run    # lihat dampaknya dulu
+```
+
+Akun dari `seed_demo` memakai kata sandi yang tertulis terbuka di README ini.
+Berguna saat pengembangan, berbahaya begitu layanan dapat diakses siapa saja.
+
+> `--hapus` menghapus akun **permanen** — model `User` tidak memakai soft
+> delete. Laporan yang pernah dibuat tetap tersimpan karena relasi pelapor
+> bersifat `SET_NULL` dan namanya sudah disalin ke `nama_pelapor`.
+
+Setelah live, uji dari luar:
+
+```bash
+./scripts/verifikasi_deploy.sh https://domain-api-anda
+```
+
+Skrip itu memeriksa layanan hidup, database terjangkau, keenam header
+keamanan, pengalihan HTTP→HTTPS, endpoint publik terbuka, endpoint privat
+menolak tanpa token, dan data wilayah benar-benar terisi.
 
 ---
 
