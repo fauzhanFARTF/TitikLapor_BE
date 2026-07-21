@@ -12,3 +12,4 @@ assets/static/
 htmlcov/
 .DS_Store
 *.sqlite3
+.ruff_cache/
